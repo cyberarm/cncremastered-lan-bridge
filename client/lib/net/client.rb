@@ -1,0 +1,69 @@
+module CncRemasteredLanBridge
+  class Net
+    class Client
+      def self.instance=(i)
+        @instance = i
+      end
+
+      def self.instance
+        @instance
+      end
+
+      attr_reader :handler, :url
+
+      def initialize(handler:, url: "ws://localhost:3000/api/v1/websocket")
+        CncRemasteredLanBridge::Net::Client.instance = self
+
+        @handler = handler
+        @url = url
+
+        raise "No handler was set for #{self.class}" unless @handler
+      end
+
+      def connect!
+        @ws = WebSocket::Client::Simple.connect(@url) do |ws|
+          ws.on :open do
+            puts "connected!"
+
+            ws.send({ type: :listing }.to_json)
+          end
+
+          ws.on :message do |msg|
+            next if msg.data.empty?
+
+            hash = JSON.parse(msg.data, symbolize_names: true)
+
+            @handler = CncRemasteredLanBridge::Net::Client.instance.handler
+
+            case hash[:type]
+            when "listing"
+              @handler.event(hash)
+            when "join_room"
+              @handler.event(hash)
+            when "create_room"
+              @handler.event(hash)
+            when "leave_room"
+              @handler.event(hash)
+            else
+              puts "UNKNOWN message type: #{hash[:type]}"
+            end
+          end
+
+          ws.on :close do |e|
+            p e
+            puts e.backtrace
+          end
+
+          ws.on :error do |e|
+            p e
+            puts e.backtrace
+          end
+        end
+      end
+
+      def write(message)
+        @ws&.send(message)
+      end
+    end
+  end
+end

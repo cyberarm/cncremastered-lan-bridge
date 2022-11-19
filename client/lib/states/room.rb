@@ -1,13 +1,25 @@
 module CncRemasteredLanBridge
   class States
     class Room < CyberarmEngine::GuiState
+      def self.instance=(i)
+        @instance = i
+      end
+
+      def self.instance
+        @instance
+      end
+
       def setup
+        Room.instance = self
+
+        @room_data = @options[:room]
+
         theme(THEME)
 
         stack(width: 1.0, height: 1.0, padding: 10) do
           background 0xff_222222
 
-          banner "ROOM NAME GOES HERE", width: 1.0, text_align: :center
+          banner @room_data[:room_name], width: 1.0, text_align: :center
 
           title "Peers"
           stack(width: 1.0, fill: true, scroll: true) do
@@ -26,9 +38,17 @@ module CncRemasteredLanBridge
           end
 
           button "Leave Room", width: 1.0, max_width: 128, margin_top: 20 do
+            CncRemasteredLanBridge::Net::Client.instance.write(
+              {
+                type: :leave_room
+              }.to_json
+            )
             pop_state
           end
         end
+      end
+
+      def handle_event(hash)
       end
     end
   end

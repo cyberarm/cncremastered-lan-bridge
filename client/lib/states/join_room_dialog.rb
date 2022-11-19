@@ -1,7 +1,19 @@
 module CncRemasteredLanBridge
   class States
     class JoinRoomDialog < CyberarmEngine::GuiState
+      def self.instance=(i)
+        @instance = i
+      end
+
+      def self.instance
+        @instance
+      end
+
       def setup
+        JoinRoomDialog.instance = self
+
+        @room_data = @options[:room]
+
         theme(THEME)
 
         background 0xdd_000000
@@ -10,13 +22,15 @@ module CncRemasteredLanBridge
           background 0xff_222222
 
           banner "Join Room", width: 1.0, text_align: :center
-          tagline "ROOM NAME GOES HERE MATES", width: 1.0, color: 0xaa_ffffff
+          tagline @room_data[:room_name], width: 1.0, color: 0xaa_ffffff
 
           tagline "Nickname", margin_top: 10
           edit_line "#{Etc.getlogin}", width: 1.0, filter: CncRemasteredLanBridge.method(:input_nickname_filter)
 
-          tagline "Password (Optional)"
-          edit_line "", width: 1.0, type: :password
+          if @room_data[:room_password]
+            tagline "Password"
+            edit_line "", width: 1.0, type: :password
+          end
 
           flow(fill: true)
 
@@ -29,7 +43,7 @@ module CncRemasteredLanBridge
 
             button "Join Room" do
               pop_state
-              push_state(States::Room)
+              push_state(States::Room, room: @room_data)
             end
           end
         end
@@ -41,6 +55,9 @@ module CncRemasteredLanBridge
         Gosu.flush
 
         super
+      end
+
+      def handle_event(hash)
       end
     end
   end

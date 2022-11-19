@@ -1,0 +1,15 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    iodine (0.7.50)
+    rack (3.0.0)
+
+PLATFORMS
+  x64-mingw-ucrt
+
+DEPENDENCIES
+  iodine
+  rack
+
+BUNDLED WITH
+   2.3.17
