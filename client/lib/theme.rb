@@ -7,6 +7,11 @@ module CncRemasteredLanBridge
     Banner: {
       text_size: 46
     },
+    ToolTip: {
+      text_size: 24,
+      background: 0xaa_000000,
+      border_color: 0xff_888888
+    },
     Button: {
       min_width: 128,
       text_size: 22,

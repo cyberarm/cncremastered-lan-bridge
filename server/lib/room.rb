@@ -10,30 +10,33 @@ module CncRemasteredLanBridge
       @members = {}
     end
 
-    def add_member(name:, address:, port:)
+    def add_member(owner: false, name:, client:, id:)
       if @members[safe_name(name)]
         # FAIL
+        return false
       else
         @members[safe_name(name)] = {
+          id: id,
+          owner: owner,
           name: name,
-          address: address,
-          port: port
+          client: client
         }
       end
 
-      @room_changed = true
+      broadcast(
+        { type: :add_member, member_name: name, room_owner: owner }.to_json
+      )
     end
 
-    def remove_member(name:, address:)
+    def remove_member(id:, name:)
       if (member = @member[safe_name(name)])
-        if member[:address] == address
+        if member[:id] == id
           @members.delete(safe_name(name))
 
-          if safe_name(member[:name]) == @owner_name
-            # KILL ROOM if owner leaves?
-            room_changed!
+          if member[:owner]
+            broadcast({ type: :destroy_room }.to_json)
           else
-            room_changed!
+            broadcast({ type: :remove_member, name: name }.to_json)
           end
         end
       else
@@ -41,12 +44,14 @@ module CncRemasteredLanBridge
       end
     end
 
-    def room_changed!
-      @room_changed = true
-    end
+    def broadcast(message)
+      @members.each do |_name, hash|
+        client = hash[:client]
 
-    def room_changed?
-      @room_changed
+        if client.open?
+          client.write(message)
+        end
+      end
     end
 
     def password?

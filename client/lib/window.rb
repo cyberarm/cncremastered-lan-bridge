@@ -52,7 +52,7 @@ module CncRemasteredLanBridge
           CncRemasteredLanBridge::Window.instance.run_on_ui_thread do
             CncRemasteredLanBridge::States::JoinRoomDialog.instance&.handle_event(hash)
           end
-        when :leave_room, :member_joined, :member_left, :member_add_port, :member_remove_port
+        when :leave_room, :destroy_room, :add_member, :remove_member
           CncRemasteredLanBridge::Window.instance.run_on_ui_thread do
             CncRemasteredLanBridge::States::Room.instance&.handle_event(hash)
           end

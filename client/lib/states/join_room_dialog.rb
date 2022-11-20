@@ -25,11 +25,11 @@ module CncRemasteredLanBridge
           tagline @room_data[:room_name], width: 1.0, color: 0xaa_ffffff
 
           tagline "Nickname", margin_top: 10
-          edit_line "#{Etc.getlogin}", width: 1.0, filter: CncRemasteredLanBridge.method(:input_nickname_filter)
+          @nickname = edit_line "#{Etc.getlogin}", width: 1.0, filter: CncRemasteredLanBridge.method(:input_nickname_filter)
 
           if @room_data[:room_password]
             tagline "Password"
-            edit_line "", width: 1.0, type: :password
+            @password = edit_line "", width: 1.0, type: :password
           end
 
           flow(fill: true)
@@ -41,7 +41,17 @@ module CncRemasteredLanBridge
 
             flow(fill: true)
 
-            button "Join Room" do
+            button "Join Room" do |btn|
+              btn.enabled = false
+
+              CncRemasteredLanBridge::Net::Client.instance.write(
+                {
+                  type: :join_room,
+                  room_name: @room_data[:room_name],
+                  member_name: @nickname.value,
+                  password: @room_data[:room_password] ? @password.value : nil
+                }.to_json
+              )
               pop_state
               push_state(States::Room, room: @room_data)
             end

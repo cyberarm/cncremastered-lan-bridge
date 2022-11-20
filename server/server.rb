@@ -1,4 +1,5 @@
 require "json"
+require "securerandom"
 
 require_relative "lib/room"
 require_relative "stun_server"
@@ -34,7 +35,7 @@ module CncRemasteredLanBridge
     ROOMS = {}
 
     def on_open(client)
-      pp client
+      CLIENTS << client
     rescue => e
       puts e
     end
@@ -62,36 +63,109 @@ module CncRemasteredLanBridge
             password: hash[:password]
           )
 
-          # room.add_member(name: hash[:owner_name], address: hash[:address], port: hash[:port])
+          member_id = SecureRandom.hex
 
           ROOMS[hash[:room_name].strip.downcase] = room
 
+          hash[:member_id] = member_id
+          hash[:member_name] = hash[:owner_name]
+
           # Send client's message back verbatium as confirmation
-          client.write(data)
+          client.write(hash.to_json)
+          room.add_member(owner: true, name: hash[:owner_name], client: client, id: member_id)
+
           send_listing(client)
         end
 
       when :join_room
       when :leave_room
+        if (room = ROOMS[safe_name(hash[:room_name])])
+          if (member = room.members.find { |_, h| h[:id] == hash[:member_id] }&.last)
+            if member[:owner]
+              broadcast(room, { type: :destroy_room, reason: "Room owner has left." }.to_json)
+
+              ROOMS.delete(safe_name(hash[:room_name]))
+            else
+              broadcast(room, { type: :leave_room, member_name: member[:name] }.to_json)
+
+              room.members.delete(safe_name(member[:name]))
+            end
+
+            CLIENTS.each { |c| send_listing(c) }
+          else
+            # Member does not belong to room, echo back so that their client can leave
+            puts "FAILED TO FIND MEMBER: #{hash[:member_id]} (#{member})"
+            client.write(data)
+          end
+        else
+          # Room is dead or ophaned, echo back to client so their client can leave the room
+          puts "FAILED TO FIND ROOM: #{hash[:room_name]} (#{room})"
+          client.write(data)
+        end
+
       else
         puts "UNKNOWN message type: #{hash[:type]}"
       end
     rescue => e
       puts e
+      pp e.backtrace
+    end
+
+    def on_close(client)
+      ROOMS.each do |room_name, room|
+        room.members.each do |member_name, member|
+          pp room, hash if member[:client] == client
+
+          if member[:owner]
+            broadcast(room, { type: :destroy_room, reason: "Room owner has left." }.to_json)
+
+            ROOMS.delete(safe_name(room.room_name))
+          else
+            broadcast(room, { type: :leave_room, member_name: member[:name] }.to_json)
+
+            room.members.delete(safe_name(member[:name]))
+          end
+
+          CLIENTS.each { |c| send_listing(c) }
+        end
+      end
+
+      CLIENTS.delete(client)
+    rescue => e
+      puts e
+      pp e.backtrace
     end
 
     def on_shutdown(client)
       CLIENTS.delete(client)
-      client.close unless client.closed?
+      client.close if client.open?
     rescue => e
       puts e
+      pp e.backtrace
     end
 
     def on_error(client)
+      pp client
+
       CLIENTS.delete(client)
-      client.close unless client.closed?
+      client.close if client.open?
     rescue => e
       puts e
+      pp e.backtrace
+    end
+
+    def broadcast(room, message)
+      room.members.each do |_name, hash|
+        client = hash[:client]
+
+        if client.open?
+          client.write(message)
+        end
+      end
+    end
+
+    def safe_name(name)
+      name.strip.downcase
     end
 
     def send_listing(client)

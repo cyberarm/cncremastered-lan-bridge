@@ -33,18 +33,7 @@ module CncRemasteredLanBridge
 
             hash = JSON.parse(msg.data, symbolize_names: true)
 
-            @handler = CncRemasteredLanBridge::Net::Client.instance.handler
-
-            case hash[:type]
-            when "listing"
-              @handler.event(hash)
-            when "join_room"
-              @handler.event(hash)
-            when "create_room"
-              @handler.event(hash)
-            when "leave_room"
-              @handler.event(hash)
-            else
+            unless CncRemasteredLanBridge::Net::Client.instance.handler.event(hash)
               puts "UNKNOWN message type: #{hash[:type]}"
             end
           end
