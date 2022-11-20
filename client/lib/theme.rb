@@ -2,14 +2,14 @@ module CncRemasteredLanBridge
   THEME = {
     TextBlock: {
       text_static: true,
-      font: "LiberationSans-Regular"
+      # font: "LiberationSans-Regular"
     },
     Banner: {
       text_size: 46
     },
     ToolTip: {
       text_size: 24,
-      background: 0xaa_000000,
+      background: 0xdd_000000,
       border_color: 0xff_888888
     },
     Button: {

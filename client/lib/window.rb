@@ -18,11 +18,22 @@ module CncRemasteredLanBridge
 
       @ui_queue = []
 
-      @client = CncRemasteredLanBridge::Net::Client.new(handler: Handler.new)
+      # push_state(States::Lobby)
+      push_state(States::BridgeModeSelection)
+    end
 
-      @client.connect!
+    def connect_ws_client!
+      return if @client && !@client.closed?
 
-      push_state(States::Lobby)
+      Thread.new do
+        begin
+          @client = CncRemasteredLanBridge::Net::Client.new(handler: Handler.new)
+          @client.connect!
+        rescue => e
+          puts e
+          puts e.backtrace
+        end
+      end
     end
 
     def update
@@ -31,6 +42,9 @@ module CncRemasteredLanBridge
       while(block = @ui_queue.shift)
         block.call
       end
+
+      # Enable CRuby's thread sheduler to switch to websocket thread
+      sleep 0.004
     end
 
     def run_on_ui_thread(&block)

@@ -11,6 +11,7 @@ module CncRemasteredLanBridge
 
       def setup
         Lobby.instance = self
+        CncRemasteredLanBridge::Window.instance.connect_ws_client!
 
         theme(THEME)
 
@@ -18,6 +19,10 @@ module CncRemasteredLanBridge
           background 0xff_222222
 
           banner "Lobby", width: 1.0, text_align: :center
+          button "Back" do
+            # FIXME: Ensure Websocket is disconnected and any owned rooms are left
+            pop_state
+          end
 
           flow(width: 1.0, fill: true) do
             stack(width: 1.0, height: 1.0, padding: 10, padding_left: 0, padding_right: 0) do
@@ -38,6 +43,14 @@ module CncRemasteredLanBridge
               end
             end
           end
+        end
+      end
+
+      def update
+        super
+
+        if CncRemasteredLanBridge::Net::Client.instance.nil? || (CncRemasteredLanBridge::Net::Client.instance && CncRemasteredLanBridge::Net::Client.instance.closed?)
+          @available_rooms_label.value = "Not connected to backend!"
         end
       end
 

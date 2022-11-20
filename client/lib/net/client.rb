@@ -16,12 +16,14 @@ module CncRemasteredLanBridge
 
         @handler = handler
         @url = url
+        @ws = nil
 
         raise "No handler was set for #{self.class}" unless @handler
       end
 
       def connect!
-        @ws = WebSocket::Client::Simple.connect(@url) do |ws|
+        WebSocket::Client::Simple.connect(@url) do |ws|
+          @ws = ws
           ws.on :open do
             puts "connected!"
 
@@ -39,11 +41,15 @@ module CncRemasteredLanBridge
           end
 
           ws.on :close do |e|
+            @ws = nil
+
             p e
             puts e.backtrace
           end
 
           ws.on :error do |e|
+            @ws = nil
+
             p e
             puts e.backtrace
           end
@@ -52,6 +58,10 @@ module CncRemasteredLanBridge
 
       def write(message)
         @ws&.send(message)
+      end
+
+      def closed?
+        @ws.nil?
       end
     end
   end
