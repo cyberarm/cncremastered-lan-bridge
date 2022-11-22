@@ -14,6 +14,7 @@ module CncRemasteredLanBridge
 
         @room_data = @options[:room]
         @room_owner = @room_data[:owner_name] == @room_data[:member_name]
+        @peer_count = 0
 
         theme(THEME)
 
@@ -22,7 +23,7 @@ module CncRemasteredLanBridge
 
           banner @room_data[:room_name], width: 1.0, text_align: :center
 
-          title "Peers (0)"
+          @peers_label = title "Peers (0)"
           @peer_container = stack(width: 1.0, fill: true, scroll: true) do
           end
 
@@ -64,6 +65,10 @@ module CncRemasteredLanBridge
       def add_member(hash)
         pp hash
 
+        @peer_count += 1
+
+        @peers_label.value = "Peers (#{@peer_count})"
+
         @peer_container.append do
           flow(width: 1.0, height: 32, padding: 4) do
             background 0x88_448800 if hash[:member_name] == @room_data[:member_name]
@@ -86,6 +91,12 @@ module CncRemasteredLanBridge
             image get_image("#{ROOT_PATH}/media/emote_sleeps.png"), height: 1.0, tip: "Not connected to peer, yet."
           end
         end
+      end
+
+      def remove_member(hash)
+        pp hash
+
+        @peer_count -= 1
       end
     end
   end

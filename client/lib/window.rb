@@ -26,13 +26,8 @@ module CncRemasteredLanBridge
       return if @client && !@client.closed?
 
       Thread.new do
-        begin
-          @client = CncRemasteredLanBridge::Net::Client.new(handler: Handler.new)
-          @client.connect!
-        rescue => e
-          puts e
-          puts e.backtrace
-        end
+        @client = CncRemasteredLanBridge::Net::Client.new(handler: Handler.new)
+        @client.connect!
       end
     end
 

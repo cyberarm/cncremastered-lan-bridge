@@ -15,6 +15,7 @@ require_relative "lib/states/bridge_mode_selection"
 
 require_relative "lib/states/vlan/bridge_setup"
 require_relative "lib/states/vlan/dashboard"
+require_relative "lib/states/vlan/lobby_server_connection_dialog"
 
 require_relative "lib/states/nat/lobby"
 require_relative "lib/states/nat/room"

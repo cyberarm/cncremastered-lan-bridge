@@ -33,7 +33,7 @@ module CncRemasteredLanBridge
 
               flow(fill: true, min_height: 20)
 
-              caption "Suggested VPN Software:", margin_top: 20, width: 1.0, text_align: :center
+              caption "Suggested VPN/SD-WAN Software:", margin_top: 20, width: 1.0, text_align: :center
 
               flow(width: 1.0, height: 40) do
                 flow(fill: true)
@@ -44,6 +44,8 @@ module CncRemasteredLanBridge
 
                 flow(fill: true)
               end
+
+              para "ZeroTier automatically attempts to connect peers directly to each other which can mitigate lag introduced by using a traditional VPN."
             end
 
             stack(width: 0.5, height: 1.0, margin: 5, padding: 5, border_thickness: 1, border_color: 0x88_ffffff, scroll: true) do

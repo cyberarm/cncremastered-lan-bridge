@@ -38,18 +38,60 @@ module CncRemasteredLanBridge
                 end
               end
 
-              stack(width: 1.0, fill: true) do
-                flow(fill: true)
+              flow(width: 1.0, fill: true) do
+                stack(fill: true, height: 1.0) do
+                  flow(fill: true)
 
-                flow(width: 1.0, height: 36) do
                   button "Back" do
                     pop_state
                   end
+                end
 
+                stack(fill: true, height: 1.0) do
                   flow(fill: true)
 
-                  @start_btn = button "Start", tip: "Start forwarder (may get a firewall authorization)", enabled: false do
-                    push_state(Dashboard, real_lan_interface: @lan_interface.value, real_vpn_interface: @vpn_interface.value)
+                  para "Multicast Proxy not working?", width: 1.0, text_align: :center
+                  para "Try directly connecting to peers.", width: 1.0, text_align: :center, margin_top: -4
+                  inscription "(Lobby server connection required)", width: 1.0, text_align: :center, margin_top: -4
+
+                  flow(width: 1.0, height: 36) do
+                    flow(fill: true)
+
+                    stack(min_width: 140, height: 1.0) do
+                      # @join_btn = button "Join Room" do
+                      #   if CncRemasteredLanBridge::Net::Client.instance&.connected?
+                      #     push_state(JoinRoomDialog, mode: :vlan, real_lan_interface: @lan_interface.value, real_vpn_interface: @vpn_interface.value)
+                      #   else
+                      #     push_state(LobbyServerConnectionDialog, forward: JoinRoomDialog, real_lan_interface: @lan_interface.value, real_vpn_interface: @vpn_interface.value)
+                      #   end
+                      # end
+
+                      # @create_btn = button "Create Room" do
+                      #   if CncRemasteredLanBridge::Net::Client.instance&.connected?
+                      #     push_state(CreateRoomDialog, mode: :vlan, real_lan_interface: @lan_interface.value, real_vpn_interface: @vpn_interface.value)
+                      #   else
+                      #     push_state(LobbyServerConnectionDialog, forward: CreateRoomDialog, real_lan_interface: @lan_interface.value, real_vpn_interface: @vpn_interface.value)
+                      #   end
+                      # end
+
+                      @lobby_btn = button "Lobby" do
+                        push_state(LobbyServerConnectionDialog, forward: Lobby, real_lan_interface: @lan_interface.value, real_vpn_interface: @vpn_interface.value)
+                      end
+                    end
+
+                    flow(fill: true)
+                  end
+                end
+
+                stack(fill: true, height: 1.0) do
+                  flow(fill: true)
+
+                  flow(width: 1.0, height: 36) do
+                    flow(fill: true)
+
+                    @start_btn = button "Start Multicast Proxy", min_width: 200, h_align: :right, enabled: false do
+                      push_state(Dashboard, real_lan_interface: @lan_interface.value, real_vpn_interface: @vpn_interface.value)
+                    end
                   end
                 end
               end
@@ -57,11 +99,13 @@ module CncRemasteredLanBridge
           end
 
           @lan_interface.subscribe(:changed) do
-            @start_btn.enabled = interfaces_valid?
+            @lobby_btn.enabled = interfaces_valid?
+            @start_btn.enabled  = interfaces_valid?
           end
 
           @vpn_interface.subscribe(:changed) do
-            @start_btn.enabled = interfaces_valid?
+            @lobby_btn.enabled = interfaces_valid?
+            @start_btn.enabled  = interfaces_valid?
           end
 
           refresh_ip_address_list(true)

@@ -33,13 +33,13 @@ module CncRemasteredLanBridge
 
         log "Setting up sockets..."
         setup_sockets
-        log "Listening for broadcasts..."
+        # log "Listening for broadcasts..."
         listen
       end
 
       def setup_sockets
         [ 24298 ].each do |port|
-          log "Listening for broadcasts on port #{port}..."
+          log "Listening on port #{port}..."
 
           socket = UDPSocket.new
           socket.setsockopt(Socket::SOL_SOCKET, Socket::SO_REUSEADDR, true)
