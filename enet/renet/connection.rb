@@ -7,12 +7,13 @@ module ENet
       @download_bandwidth = download_bandwidth
       @upload_bandwidth = upload_bandwidth
 
+      @enet_event = LibENet::ENetEvent.new
       @online = false
 
       ENet.init
 
       @_address = LibENet::ENetAddress.new
-      if LibENet.enet_address_set_host(@_address, "localhost") != 0
+      if LibENet.enet_address_set_host(@_address, @host) != 0
         raise "Failed to set host"
       end
       @_address[:port] = @port
@@ -31,10 +32,9 @@ module ENet
         raise "Cannot connect to remote host"
       end
 
-      enet_event = LibENet::ENetEvent.new
-      result = LibENet.enet_host_service(@_host, enet_event, timeout_ms)
+      result = LibENet.enet_host_service(@_host, @enet_event, timeout_ms)
 
-      if result.positive? && enet_event[:type] == :ENET_EVENT_TYPE_CONNECT
+      if result.positive? && @enet_event[:type] == :ENET_EVENT_TYPE_CONNECT
         @online = true
 
         on_connection
@@ -54,20 +54,10 @@ module ENet
     end
 
     def update(timeout_ms)
-      enet_event = LibENet::ENetEvent.new
-      result = LibENet.enet_host_service(@_host, enet_event, timeout_ms)
+      result = LibENet.enet_host_service(@_host, @enet_event, timeout_ms)
 
       if result.positive?
-        pp [
-            :connection,
-            enet_event[:channel_id],
-            enet_event[:data],
-            enet_event[:packet],
-            enet_event[:peer],
-            enet_event[:type]
-        ]
-
-        case enet_event[:type]
+        case @enet_event[:type]
         when :ENET_EVENT_TYPE_NONE
           puts :ENET_EVENT_TYPE_NONE
 
@@ -75,9 +65,11 @@ module ENet
           puts :ENET_EVENT_TYPE_CONNECT
 
         when :ENET_EVENT_TYPE_RECEIVE
-          data = enet_event[:packet][:data].read_string(enet_event[:packet][:length])
+          data = @enet_event[:packet][:data].read_string(@enet_event[:packet][:length])
 
-          on_packet_received(data, enet_event[:channel_id])
+          on_packet_received(data, @enet_event[:channel_id])
+
+          LibENet.enet_packet_destroy(@enet_event[:packet])
 
         when :ENET_EVENT_TYPE_DISCONNECT
           puts :ENET_EVENT_TYPE_DISCONNECT

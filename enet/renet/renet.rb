@@ -1,3 +1,5 @@
+require "ipaddr"
+
 module ENet
   @@initialized = false
   @@at_exit_handler = false
