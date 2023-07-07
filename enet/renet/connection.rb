@@ -84,6 +84,11 @@ module ENet
     end
 
     def use_compression(bool)
+      if bool
+        LibENet.enet_host_compress_with_range_coder(@_host)
+      else
+        LibENet.enet_host_compress(@_host, nil)
+      end
     end
 
     def on_connection

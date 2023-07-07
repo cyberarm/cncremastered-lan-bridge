@@ -27,7 +27,7 @@ module ENet
       @_peer[:incoming_data_total]
     end
 
-    def packets_received # This might not be compariable to #packets_sent
+    def packets_received # FIXME: This might not be compariable to #packets_sent
       @_peer[:host][:total_received_packets]
     end
 

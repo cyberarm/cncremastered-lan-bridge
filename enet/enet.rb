@@ -439,6 +439,9 @@ require_relative "renet/client"
 
 Thread.new do
   server = ENet::Server.new(host: "localhost", port: 3000, max_clients: 32, channels: 4, download_bandwidth: 0, upload_bandwidth: 0)
+  server.use_compression(true)
+  # server.use_compression(false)
+
   def server.on_connection(client)
     puts "[SERVER][ID #{client.id}] connected from #{client.address.host}:#{client.address.port}"
     send_packet(client, "Hello World", reliable: true, channel: 1)
@@ -462,6 +465,9 @@ end
 sleep 0.5
 
 connection = ENet::Connection.new(host: "localhost", port: 3000, channels: 4, download_bandwidth: 0, upload_bandwidth: 0)
+connection.use_compression(true)
+# connection.use_compression(false)
+
 def connection.on_connection
   puts "[CONNECTION] CONNECTED TO SERVER"
   send_packet("Hello World!", reliable: true, channel: 0)
