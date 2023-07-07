@@ -56,6 +56,11 @@ module ENet
     end
 
     def send_queued_packets
+      LibENet.enet_host_flush(@_host)
+    end
+
+    def flush
+      send_queued_packets
     end
 
     def update(timeout_ms)

@@ -53,6 +53,10 @@ module ENet
       LibENet.enet_host_flush(@_host)
     end
 
+    def flush
+      send_queued_packets
+    end
+
     def update(timeout_ms)
       result = LibENet.enet_host_service(@_host, @enet_event, timeout_ms)
 
